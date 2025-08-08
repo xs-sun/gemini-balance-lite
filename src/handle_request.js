@@ -1,7 +1,7 @@
 import { handleVerification } from './verify_keys.js';
 import openai from './openai.mjs';
 
-export async function handleRequest(request) {
+export async function handleRequest(request, env) {
 
   const url = new URL(request.url);
   const pathname = url.pathname;
@@ -23,7 +23,7 @@ export async function handleRequest(request) {
     return openai.fetch(request);
   }
 
-  const targetUrl = `https://gateway.ai.cloudflare.com/v1/3c950326cffb66c7252a1024bdafd3e6/gemini-gw/google-ai-studio${pathname}${search}`;
+  const targetUrl = `https://gateway.ai.cloudflare.com/v1/${env.gwId}/gemini-gw/google-ai-studio${pathname}${search}`;
 
   try {
     const headers = new Headers();
