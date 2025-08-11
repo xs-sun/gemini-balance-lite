@@ -23,7 +23,7 @@ export async function handleRequest(request, env) {
     return openai.fetch(request, env);
   }
 
-  const targetUrl = `https://gateway.ai.cloudflare.com/v1/${env.gwId}/gemini-gw/google-ai-studio${pathname}${search}`;
+  const targetUrl = `https://gateway.ai.cloudflare.com/v1/${env.gwId}/google-ai-studio${pathname}${search}`;
 
   try {
     const headers = new Headers();
