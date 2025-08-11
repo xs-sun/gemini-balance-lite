@@ -6,7 +6,7 @@
 import { Buffer } from "node:buffer";
 
 export default {
-  async fetch (request, env) {
+  async fetch (request) {
     if (request.method === "OPTIONS") {
       return handleOPTIONS();
     }
@@ -39,7 +39,7 @@ export default {
             .catch(errHandler);
         case pathname.endsWith("/models"):
           assert(request.method === "GET");
-          return handleModels(apiKey, env)
+          return handleModels(apiKey)
             .catch(errHandler);
         default:
           throw new HttpError("404 Not Found", 404);
@@ -86,7 +86,7 @@ const makeHeaders = (apiKey, more) => ({
   ...more
 });
 
-async function handleModels (apiKey, env) {
+async function handleModels (apiKey) {
   const response = await fetch(`${BASE_URL}/${API_VERSION}/models`, {
     headers: makeHeaders(apiKey),
   });
@@ -107,7 +107,7 @@ async function handleModels (apiKey, env) {
 }
 
 const DEFAULT_EMBEDDINGS_MODEL = "text-embedding-004";
-async function handleEmbeddings (req, apiKey, env) {
+async function handleEmbeddings (req, apiKey) {
   if (typeof req.model !== "string") {
     throw new HttpError("model is not specified", 400);
   }
@@ -151,7 +151,7 @@ async function handleEmbeddings (req, apiKey, env) {
 }
 
 const DEFAULT_MODEL = "gemini-2.5-flash";
-async function handleCompletions (req, apiKey, env) {
+async function handleCompletions (req, apiKey) {
   let model = DEFAULT_MODEL;
   switch (true) {
     case typeof req.model !== "string":

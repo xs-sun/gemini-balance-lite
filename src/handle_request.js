@@ -20,7 +20,7 @@ export async function handleRequest(request, env) {
 
   // 处理OpenAI格式请求
   if (url.pathname.endsWith("/chat/completions") || url.pathname.endsWith("/completions") || url.pathname.endsWith("/embeddings") || url.pathname.endsWith("/models")) {
-    return openai.fetch(request, env);
+    return openai.fetch(request);
   }
 
   const targetUrl = `https://gateway.ai.cloudflare.com/v1/${env.gwId}/gemini-gw/google-ai-studio${pathname}${search}`;
