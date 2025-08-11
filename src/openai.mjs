@@ -6,7 +6,7 @@
 import { Buffer } from "node:buffer";
 
 export default {
-  async fetch (request) {
+  async fetch (request, env) {
     if (request.method === "OPTIONS") {
       return handleOPTIONS();
     }
@@ -39,7 +39,7 @@ export default {
             .catch(errHandler);
         case pathname.endsWith("/models"):
           assert(request.method === "GET");
-          return handleModels(apiKey)
+          return handleModels(apiKey, env)
             .catch(errHandler);
         default:
           throw new HttpError("404 Not Found", 404);
@@ -74,7 +74,10 @@ const handleOPTIONS = async () => {
   });
 };
 
-const BASE_URL = "https://gateway.ai.cloudflare.com/v1/${env.gwId}/gemini-gw/google-ai-studio";
+const getBaseUrl = (env) => {
+  return `https://gateway.ai.cloudflare.com/v1/${env.gwId}/gemini-gw/google-ai-studio`;
+}
+
 const API_VERSION = "v1beta";
 
 // https://github.com/google-gemini/generative-ai-js/blob/cf223ff4a1ee5a2d944c53cddb8976136382bee6/src/requests/request.ts#L71
@@ -85,8 +88,8 @@ const makeHeaders = (apiKey, more) => ({
   ...more
 });
 
-async function handleModels (apiKey) {
-  const response = await fetch(`${BASE_URL}/${API_VERSION}/models`, {
+async function handleModels (apiKey, env) {
+  const response = await fetch(`${getBaseUrl(env)}/${API_VERSION}/models`, {
     headers: makeHeaders(apiKey),
   });
   let { body } = response;
@@ -106,7 +109,7 @@ async function handleModels (apiKey) {
 }
 
 const DEFAULT_EMBEDDINGS_MODEL = "text-embedding-004";
-async function handleEmbeddings (req, apiKey) {
+async function handleEmbeddings (req, apiKey, env) {
   if (typeof req.model !== "string") {
     throw new HttpError("model is not specified", 400);
   }
@@ -122,7 +125,7 @@ async function handleEmbeddings (req, apiKey) {
   if (!Array.isArray(req.input)) {
     req.input = [ req.input ];
   }
-  const response = await fetch(`${BASE_URL}/${API_VERSION}/${model}:batchEmbedContents`, {
+  const response = await fetch(`${getBaseUrl(env)}/${API_VERSION}/${model}:batchEmbedContents`, {
     method: "POST",
     headers: makeHeaders(apiKey, { "Content-Type": "application/json" }),
     body: JSON.stringify({
@@ -150,7 +153,7 @@ async function handleEmbeddings (req, apiKey) {
 }
 
 const DEFAULT_MODEL = "gemini-2.5-flash";
-async function handleCompletions (req, apiKey) {
+async function handleCompletions (req, apiKey, env) {
   let model = DEFAULT_MODEL;
   switch (true) {
     case typeof req.model !== "string":
@@ -187,7 +190,7 @@ async function handleCompletions (req, apiKey) {
   }
   console.log(body.tools)
   const TASK = req.stream ? "streamGenerateContent" : "generateContent";
-  let url = `${BASE_URL}/${API_VERSION}/models/${model}:${TASK}`;
+  let url = `${getBaseUrl(env)}/${API_VERSION}/models/${model}:${TASK}`;
   if (req.stream) { url += "?alt=sse"; }
   const response = await fetch(url, {
     method: "POST",
