@@ -75,7 +75,7 @@ const handleOPTIONS = async () => {
 };
 
 const getBaseUrl = (env) => {
-  return `https://gateway.ai.cloudflare.com/v1/${env.gwId}/google-ai-studio`;
+  return `https://gateway.ai.cloudflare.com/v1/${env.gwId}/gemini-gw/google-ai-studio`;
 }
 
 const API_VERSION = "v1beta";
