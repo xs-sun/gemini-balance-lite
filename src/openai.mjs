@@ -74,10 +74,8 @@ const handleOPTIONS = async () => {
   });
 };
 
-const getBaseUrl = (env) => {
-  return `https://gateway.ai.cloudflare.com/v1/${env.gwId}/gemini-gw/google-ai-studio`;
-}
 
+const BASE_URL = "https://generativelanguage.googleapis.com";
 const API_VERSION = "v1beta";
 
 // https://github.com/google-gemini/generative-ai-js/blob/cf223ff4a1ee5a2d944c53cddb8976136382bee6/src/requests/request.ts#L71
@@ -89,7 +87,7 @@ const makeHeaders = (apiKey, more) => ({
 });
 
 async function handleModels (apiKey, env) {
-  const response = await fetch(`${getBaseUrl(env)}/${API_VERSION}/models`, {
+  const response = await fetch(`${BASE_URL}/${API_VERSION}/models`, {
     headers: makeHeaders(apiKey),
   });
   let { body } = response;
@@ -125,7 +123,7 @@ async function handleEmbeddings (req, apiKey, env) {
   if (!Array.isArray(req.input)) {
     req.input = [ req.input ];
   }
-  const response = await fetch(`${getBaseUrl(env)}/${API_VERSION}/${model}:batchEmbedContents`, {
+  const response = await fetch(`${BASE_URL}/${API_VERSION}/${model}:batchEmbedContents`, {
     method: "POST",
     headers: makeHeaders(apiKey, { "Content-Type": "application/json" }),
     body: JSON.stringify({
@@ -190,7 +188,7 @@ async function handleCompletions (req, apiKey, env) {
   }
   console.log(body.tools)
   const TASK = req.stream ? "streamGenerateContent" : "generateContent";
-  let url = `${getBaseUrl(env)}/${API_VERSION}/models/${model}:${TASK}`;
+  let url = `${BASE_URL}/${API_VERSION}/models/${model}:${TASK}`;
   if (req.stream) { url += "?alt=sse"; }
   const response = await fetch(url, {
     method: "POST",
