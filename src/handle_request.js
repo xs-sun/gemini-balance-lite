@@ -19,6 +19,13 @@ export async function handleRequest(request, env) {
     return handleVerification(request);
   }
   let apiKey = ''
+  const authHeader = request.headers.get('x-goog-api-key');
+  if (!authHeader || authHeader !== env.authToken) {
+    return new Response(JSON.stringify({ error: 'auth error.' }), {
+      status: 401,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
   if (googleApiKeys.length > 0) {
     apiKey = googleApiKeys[Math.floor(Math.random() * googleApiKeys.length)];
     console.log(`Gemini Selected API Key: ${apiKey}`);
@@ -37,13 +44,6 @@ export async function handleRequest(request, env) {
   const targetUrl = `https://gateway.ai.cloudflare.com/v1/${env.gwId}/gemini-gw/google-ai-studio${pathname}${search}`;
 
   try {
-    const authHeader = request.headers.get('x-goog-api-key');
-    if (!authHeader || authHeader !== env.authToken) {
-      return new Response(JSON.stringify({ error: 'auth error.' }), {
-        status: 401,
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
     const headers = new Headers();
     headers.set('x-goog-api-key', apiKey);
     for (const [key, value] of request.headers.entries()) {
