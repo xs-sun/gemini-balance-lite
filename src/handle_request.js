@@ -19,7 +19,7 @@ export async function handleRequest(request, env) {
     return handleVerification(request);
   }
   let apiKey = ''
-  const authHeader = request.headers.get('x-goog-api-key');
+  const authHeader = request.headers.get('x-goog-api-key') || request.headers.get('Authorization');
   if (!authHeader || authHeader !== env.authToken) {
     return new Response(JSON.stringify({ error: 'auth error.' }), {
       status: 401,
