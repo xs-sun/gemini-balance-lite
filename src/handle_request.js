@@ -2,7 +2,8 @@ import { handleVerification } from './verify_keys.js';
 import openai from './openai.mjs';
 
 export async function handleRequest(request, env) {
-
+  const googleApiKeys = env.apiKeys ? env.apiKeys.join(',') : []
+  const authToken = env.authToken
   const url = new URL(request.url);
   const pathname = url.pathname;
   const search = url.search;
@@ -17,29 +18,37 @@ export async function handleRequest(request, env) {
   if (pathname === '/verify' && request.method === 'POST') {
     return handleVerification(request);
   }
+  let apiKey = ''
+  if (googleApiKeys.length > 0) {
+    apiKey = googleApiKeys[Math.floor(Math.random() * googleApiKeys.length)];
+    console.log(`Gemini Selected API Key: ${apiKey}`);
+  } else {
+    return new Response(JSON.stringify({ error: 'auth error. no keys' }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
 
   // 处理OpenAI格式请求
   if (url.pathname.endsWith("/chat/completions") || url.pathname.endsWith("/completions") || url.pathname.endsWith("/embeddings") || url.pathname.endsWith("/models")) {
-    return openai.fetch(request);
+    return openai.fetch(request, apiKey);
   }
 
   const targetUrl = `https://gateway.ai.cloudflare.com/v1/${env.gwId}/gemini-gw/google-ai-studio${pathname}${search}`;
 
   try {
+    const authHeader = request.headers.get('x-goog-api-key');
+    if (!authHeader || authHeader !== env.authToken) {
+      return new Response(JSON.stringify({ error: 'auth error.' }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
     const headers = new Headers();
+    headers.set('x-goog-api-key', apiKey);
     for (const [key, value] of request.headers.entries()) {
-      if (key.trim().toLowerCase() === 'x-goog-api-key') {
-        const apiKeys = value.split(',').map(k => k.trim()).filter(k => k);
-        if (apiKeys.length > 0) {
-          const selectedKey = apiKeys[Math.floor(Math.random() * apiKeys.length)];
-          console.log(`Gemini Selected API Key: ${selectedKey}`);
-          headers.set('x-goog-api-key', selectedKey);
-        }
-      } else {
-        if (key.trim().toLowerCase()==='content-type')
-        {
-           headers.set(key, value);
-        }
+      if (key.trim().toLowerCase()==='content-type') {
+        headers.set(key, value);
       }
     }
 

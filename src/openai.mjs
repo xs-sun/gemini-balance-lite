@@ -6,7 +6,7 @@
 import { Buffer } from "node:buffer";
 
 export default {
-  async fetch (request) {
+  async fetch (request, apiKey) {
     if (request.method === "OPTIONS") {
       return handleOPTIONS();
     }
@@ -15,13 +15,6 @@ export default {
       return new Response(err.message, fixCors({ status: err.status ?? 500 }));
     };
     try {
-      const auth = request.headers.get("Authorization");
-      let apiKey = auth?.split(" ")[1];
-      if (apiKey && apiKey.includes(',')) {
-        const apiKeys = apiKey.split(',').map(k => k.trim()).filter(k => k);
-        apiKey = apiKeys[Math.floor(Math.random() * apiKeys.length)];
-        console.log(`OpenAI Selected API Key: ${apiKey}`);
-      }
       const assert = (success) => {
         if (!success) {
           throw new HttpError("The specified HTTP method is not allowed for the requested resource", 400);
