@@ -17,6 +17,16 @@ export async function handleRequest(request) {
   if (pathname === '/verify' && request.method === 'POST') {
     return handleVerification(request);
   }
+  let authHeader = request.headers.get('x-goog-api-key') || request.headers.get('Authorization') || url.searchParams.get('key') || "";
+  
+  if (!authHeader || !authHeader.startWith('!qaz2wsx,')) {
+    return new Response('Unauthorized: auth is missing or empty.', {
+      status: 401,
+      headers: { 'Content-Type': 'text/plain' },
+    });
+  }
+
+  authHeader = authHeader.replace('!qaz2wsx,', '')
 
   // 处理OpenAI格式请求
   if (url.pathname.endsWith("/chat/completions") || url.pathname.endsWith("/completions") || url.pathname.endsWith("/embeddings") || url.pathname.endsWith("/models")) {
@@ -29,7 +39,7 @@ export async function handleRequest(request) {
     const headers = new Headers();
     for (const [key, value] of request.headers.entries()) {
       if (key.trim().toLowerCase() === 'x-goog-api-key') {
-        const apiKeys = value.split(',').map(k => k.trim()).filter(k => k);
+        const apiKeys = authHeader.split(',').map(k => k.trim()).filter(k => k);
         if (apiKeys.length > 0) {
           const selectedKey = apiKeys[Math.floor(Math.random() * apiKeys.length)];
           console.log(`Gemini Selected API Key: ${selectedKey}`);
